@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('Cart/Cart', [ProductController::class, 'index'])->name('cart.index');
 });
+
 //welcome page
 Route::get('/', [WelcomeController::class, 'welcomeProducts'])->name('welcome.index');
 
