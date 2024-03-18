@@ -2,9 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Cart;
 use App\Models\Product;
-use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Http\Request;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -30,20 +31,19 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        // $products = Product::select('product_id', 'product_name', 'product_img', 'product_price', 'product_img', 'product_quantity')
-        // ->when($request->searchTerm, function ($query, $searchTerm) {
-        //     return $query->where('product_name', 'like', '%' . $searchTerm . '%');
-        // })->paginate(6);
+        $cart = Cart::all();
 
+        $cartCount = $cart->count();
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user()
             ],
             'flash' => [
                 'successMessage' => fn() => $request->session()->get('successMessage'),
                 'errorMessage' => fn() => $request->session()->get('errorMessage'),
             ],
+            'cartCount' => $cartCount,
             // 'products' => $products
         ];
     }

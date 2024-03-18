@@ -22,11 +22,16 @@ const props = defineProps({
   flash: Object,
 });
 
+const formatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'php',
+});
+
 const addProductSchema = yup.object({
   productImage: yup.string().required('Product image is required'),
   productName: yup.string().required('Product name is required'),
-  productQuantity: yup.string().required('Product quantity is required'),
-  productPrice: yup.string().required('Product price is required'),
+  productQuantity: yup.number().required('Product quantity is required'),
+  productPrice: yup.number().required('Product price is required'),
 });
 
 const addProductForm = useForm({
@@ -44,24 +49,13 @@ const addProduct = () => {
         if (props.flash.successMessage) {
           toast.success(props.flash.successMessage);
           addProductForm.reset();
+          selectedImageUrl.value = 'https://hinacreates.com/wp-content/uploads/2021/06/dummy2-450x341.png';
         } else {
           toast.error(props.flash.errorMessage);
         }
       }
     });
 }
-
-const formatPrice = () => {
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'PHP',
-  });
-  const inputValue = parseFloat(addProductForm.product_price); // Parse the input value to float
-  if (!isNaN(inputValue)) { // Check if the input value is a valid number
-    // Format the input value and update the v-model
-    addProductForm.product_price = formatter.format(inputValue);
-  }
-};
 
 
 const getPostImageUrl = (imageName) => {
@@ -120,9 +114,12 @@ const search = () => {
     preserveScroll: true,
     preserveState: true,
   });
-
 }
 
+const closeAddModal = () => {
+  addProductForm.reset();
+  selectedImageUrl.value = 'https://hinacreates.com/wp-content/uploads/2021/06/dummy2-450x341.png';
+}
 </script>
 
 <template>
@@ -139,7 +136,7 @@ const search = () => {
         <div class="d-flex">
           <button type="button"
             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-            data-bs-toggle="modal" data-bs-target="#exampleModal">
+            data-bs-toggle="modal" data-bs-target="#addProduct">
             Add product
           </button>
 
@@ -188,18 +185,19 @@ const search = () => {
                   {{ product.product_quantity }}
                 </td>
                 <td class="px-6 py-4 text-gray-900">
-                  {{ product.product_price }}
+                  {{ formatter.format(product.product_price) }}
                 </td>
                 <td class="px-6 py-4 text-gray-900">
-                  <Link type="button" :href="route('products.show', { product_id: product.product_id })"
-                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                  View
-                  </Link>
-                  <button type="button" @click="deleteProduct(product.product_id, product.product_name)"
-                    class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-                    Delete
-                  </button>
-
+                  <div class="flex flex-column">
+                    <Link type="button" :href="route('products.show', { product_id: product.product_id })"
+                      class="text-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-2.5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                    View
+                    </Link>
+                    <button type="button" @click="deleteProduct(product.product_id, product.product_name)"
+                      class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-2.5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -232,12 +230,13 @@ const search = () => {
       </div>
     </div>
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addProduct" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h1 class="modal-title fs-5" id="exampleModalLabel">Add Product</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" @click="closeAddModal()" class="btn-close" data-bs-dismiss="modal"
+              aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <Form @submit="addProduct()" :validation-schema="addProductSchema" v-slot="{ errors }">
@@ -259,9 +258,8 @@ const search = () => {
               </div>
               <div class="mb-3">
                 <label for="exampleInputEmail1" class="form-label">Product Price (₱)</label>
-                <Field name="productPrice" id="productPrice" @change="formatPrice" pattern="\d*"
-                  v-model="addProductForm.product_price" type="text" class="form-control"
-                  :class="{ 'is-invalid': errors.productPrice }" />
+                <Field name="productPrice" id="productPrice" pattern="\d*" v-model="addProductForm.product_price"
+                  type="number" class="form-control" :class="{ 'is-invalid': errors.productPrice }" />
                 <span class="invalid-feedback">{{ errors.productPrice }}</span>
               </div>
               <div class="mb-3">
@@ -271,7 +269,8 @@ const search = () => {
                 <span class="invalid-feedback">{{ errors.productQuantity }}</span>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" @click="closeAddModal()" class="btn btn-secondary"
+                  data-bs-dismiss="modal">Close</button>
                 <button type="submit" class="btn btn-primary">Save changes</button>
               </div>
             </Form>

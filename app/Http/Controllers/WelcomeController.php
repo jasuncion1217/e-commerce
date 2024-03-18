@@ -13,6 +13,7 @@ class WelcomeController extends Controller
     public function welcomeProducts(Request $request)
     {
         $products = Product::select('product_id', 'product_name', 'product_img', 'product_price', 'product_img', 'product_quantity')
+            ->orderByDesc('product_id')
             ->when($request->searchTerm, function ($query, $searchTerm) {
                 return $query->where('product_name', 'like', '%' . $searchTerm . '%');
             })->paginate(6);

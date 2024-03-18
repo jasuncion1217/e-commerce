@@ -20,20 +20,13 @@ const props = defineProps({
 const editProductSchema = yup.object({
     productName: yup.string().required('Product name is required'),
     productQuantity: yup.number().required('Product quantity is required'),
-    productPrice: yup.string().required('Product price is required'),
+    productPrice: yup.number().required('Product price is required'),
 });
 
-const formatPrice = () => {
-    const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'PHP',
-    });
-    const inputValue = parseFloat(editForm.product_price); // Parse the input value to float
-    if (!isNaN(inputValue)) { // Check if the input value is a valid number
-        // Format the input value and update the v-model
-        editForm.product_price = formatter.format(inputValue);
-    }
-};
+const formatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'php',
+});
 
 const getPostImageUrl = (imageName) => {
     return imageName ? `/storage/${imageName}` : 'https://hinacreates.com/wp-content/uploads/2021/06/dummy2-450x341.png';
@@ -113,7 +106,7 @@ const updateProduct = (productId) => {
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div v-if="editing === false" class="container-fluid">
                         <div class="grid grid-cols-2">
-                            <div>
+                            <div class="col-span-2 sm:col-span-1">
                                 <h1> Product details </h1>
 
                                 <div class="mb-3">
@@ -125,7 +118,7 @@ const updateProduct = (productId) => {
                                 <div class="mb-3">
                                     <label for="category" class="col-form-label"><strong>Product Price:</strong></label>
                                     <span class="d-flex" id="view-book-category">
-                                        {{ props.product.product_price }}
+                                        {{ formatter.format(props.product.product_price) }}
                                     </span>
                                 </div>
                                 <div class="mb-3">
@@ -136,7 +129,7 @@ const updateProduct = (productId) => {
                                     </span>
                                 </div>
                             </div>
-                            <div class="flex">
+                            <div class="flex col-span-2 sm:col-span-1 mb-2">
                                 <div class="container-fluid mt-2 justify-items-center">
                                     <img :src="getPostImageUrl(product.product_img)" class="w-100 h-100" />
                                 </div>
@@ -155,7 +148,7 @@ const updateProduct = (productId) => {
                     </div>
                     <div v-else class="container-fluid">
                         <div class="grid grid-cols-2">
-                            <div>
+                            <div class="col-span-2 sm:col-span-1">
                                 <h1> Product details </h1>
                                 <Form ref="form" @submit="updateProduct(product.product_id)"
                                     :validation-schema="editProductSchema" v-slot="{ errors }">
@@ -169,9 +162,8 @@ const updateProduct = (productId) => {
                                     </div>
                                     <div class="mb-3">
                                         <label for="category" class="col-form-label">Product Price:</label>
-                                        <Field name="productPrice" step="0.01" type="text" id="disabledTextInput"
-                                            class="form-control" @change="formatPrice"
-                                            :class="{ 'is-invalid': errors.productPrice }"
+                                        <Field name="productPrice" step="0.01" type="number" id="disabledTextInput"
+                                            class="form-control" :class="{ 'is-invalid': errors.productPrice }"
                                             v-model="editForm.product_price" />
                                         <span class="invalid-feedback">{{ errors.productPrice }}</span>
                                     </div>
@@ -190,8 +182,8 @@ const updateProduct = (productId) => {
                                     </div>
                                 </Form>
                             </div>
-                            <div>
-                                <div class="container-fluid mt-2 justify-items-center">
+                            <div class="col-span-2 sm:col-span-1">
+                                <div class="container-fluid mt-2 justify-items-center mb-2">
                                     <div>
                                         <div class="mb-4 d-flex justify-content-center">
                                             <img id="selectedImage" :src="selectedImageUrl" alt="example placeholder"

@@ -1,8 +1,13 @@
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ref, onMounted } from 'vue';
+import { Form, Field } from 'vee-validate';
+import * as yup from 'yup';
+import { useToast } from 'vue-toastification';
+import WelcomeLayout from '@/Layouts/WelcomeLayout.vue';
 
-defineProps({
+const toast = useToast();
+const props = defineProps({
     canLogin: {
         type: Boolean,
     },
@@ -17,7 +22,11 @@ defineProps({
         type: String,
         required: true,
     },
+    auth: Object,
     products: Object,
+    flash: Object,
+    cart: String,
+    errorMessage: String,
 });
 
 const getPostImageUrl = (imageName) => {
@@ -25,120 +34,188 @@ const getPostImageUrl = (imageName) => {
 };
 
 const searchTerm = ref('');
+const getProductId = ref('');
+const maxQuantity = ref('');
+
+const showCartModal = (productId, productQuantity) => {
+    getProductId.value = productId;
+    maxQuantity.value = productQuantity;
+}
+
+const closeCartModal = () => {
+    addtoCartForm.reset();
+}
 
 const search = () => {
-  router.get('/', {
-    searchTerm: searchTerm.value,
-  }, {
-    preserveScroll: true,
-    preserveState: true,
-  });
-
+    router.get('/', {
+        searchTerm: searchTerm.value,
+    }, {
+        preserveScroll: true,
+        preserveState: true,
+    });
 }
+
+const addCartSchema = yup.object({
+    productQuantity: yup.string().required('Product quantity is required'),
+});
+
+const addtoCartForm = useForm({
+    product_quantity: null,
+});
+
+const addtoCart = (productId) => {
+    addtoCartForm.post(route('cart.store', {
+        product_id: productId
+    }),
+        {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                toast.success(props.flash.successMessage);
+                addtoCartForm.reset();
+            },
+            onError: () => {
+                toast.error(props.errorMessage);
+                addtoCartForm.reset();
+            }
+        });
+}
+
+const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'php',
+});
+
+// onMounted (()=>{
+//     console.log(props.products.links[0])
+// })
 </script>
 
 <template>
 
     <Head title="Welcome" />
-
-    <div
-        class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-center selection:bg-red-500 selection:text-white">
-        <nav class="dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
-            <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-                <Link href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
-                <img src="https://flowbite.com/docs/images/logo.svg" class="h-8" alt="Flowbite Logo">
-                <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">Shoe Store</span>
-                </Link>
-                <div class="flex items-end space-x-3 md:space-x-0 rtl:space-x-reverse">
-                    <Link v-if="$page.props.auth.user" :href="route('cart.index')"
-                        class="relative inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="24" fill="currentColor"
-                        class="bi bi-archive-fill" viewBox="0 0 16 16">
-                        <path
-                            d="M12.643 15C13.979 15 15 13.845 15 12.5V5H1v7.5C1 13.845 2.021 15 3.357 15zM5.5 7h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1M.8 1a.8.8 0 0 0-.8.8V3a.8.8 0 0 0 .8.8h14.4A.8.8 0 0 0 16 3V1.8a.8.8 0 0 0-.8-.8z" />
-                    </svg>
-                    <span class="sr-only">Notifications</span>
-                    <div v-if="$page.props.auth.reservationsCount"
-                        class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
-                        {{ $page.props.auth.reservationsCount }} </div>
-                    </Link>
-                    <ul class="flex flex-wrap items-center justify-end space-x-4">
-                        <div v-if="canLogin">
-                            <Link v-if="$page.props.auth.user" :href="route('dashboard')"
-                                class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
-                            Dashboard
-                            </Link>
-                            <template v-else>
-                                <Link :href="route('login')"
-                                    class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
-                                Log in
-                                </Link>
-                                <span class="text-white">|</span>
-                                <Link v-if="canRegister" :href="route('register')"
-                                    class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
-                                Register
-                                </Link>
-                            </template>
+    <WelcomeLayout>
+        <div
+            class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-center selection:bg-red-500 selection:text-white">
+            <div>
+                <div class="d-flex">
+                    <div class="d-flex ml-auto">
+                        <div class="d-flex">
+                            <input name="search" type="text" class="form-control mb-2" v-model="searchTerm"
+                                placeholder="Search..." @keyup="search" />
                         </div>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        <div class="max-w-7xl mx-auto p-6 lg:p-8 mt-20">
-            <div class="d-flex">
-                <div class="d-flex ml-auto">
-                    <div class="d-flex">
-                        <input name="search" type="text" class="form-control mb-2" v-model="searchTerm"
-                            placeholder="Search..." @keyup="search" />
                     </div>
                 </div>
-            </div>
-            <div v-if="products.data.length > 0">
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div v-for="product in products.data" :key="product.product_id">
-                        <div class="max-w-sm rounded overflow-hidden shadow-lg">
-                            <img class="img w-full" :src="getPostImageUrl(product.product_img)"
-                                alt="Sunset in the mountains">
-                            <div class="px-6 py-4">
-                                <div class="font-bold text-xl mb-2">{{ product.product_name }}</div>
-                                <p class="text-gray-700 text-base">
-                                <div class=" text-xl mb-2"><span class="font-bold">Available: </span>{{
-                            product.product_quantity }}
+                <div v-if="products.data.length > 0">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div v-for="product in products.data" :key="product.product_id">
+                            <div class="max-w-sm rounded overflow-hidden shadow-lg">
+                                <img class="img w-full" :src="getPostImageUrl(product.product_img)"
+                                    alt="Sunset in the mountains">
+                                <div class="flex-col">
+                                    <div class="px-6 py-4">
+                                        <div class="font-bold text-xl mb-2">{{ product.product_name }}</div>
+                                        <p class="text-gray-700 text-base">
+                                        <div class=" text-xl mb-2"><span class="font-bold">Available:
+                                            </span>
+                                            {{ product.product_quantity }}
+                                        </div>
+                                        <div class=" text-xl mb-2"><span class="font-bold">Price:
+                                            </span>
+                                            {{ formatter.format(product.product_price) }}
+                                        </div>
+                                        </p>
+                                    </div>
+                                    <div class="px-6 mb-2">
+                                        <button @click="showCartModal(product.product_id, product.product_quantity)"
+                                            type="button"
+                                            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm p-2 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                                            data-bs-toggle="modal" data-bs-target="#cartModal">
+                                            Add to cart
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class=" text-xl mb-2"><span class="font-bold">Price: </span>{{ product.product_price }}
-                                </div>
-                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div v-else>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div>
-                        <div class="max-w-sm rounded overflow-hidden shadow-lg">
-                            <img class="img w-full" src="https://cdn.dribbble.com/users/3512533/screenshots/14168376/media/1357b33cb4057ecb3c6f869fc977561d.jpg?resize=400x300&vertical=center"
-                                alt="No results">
-                            <div class="px-6 py-4">
-                                <div class="font-bold text-xl mb-2">No Result</div>
+                <div v-else>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="max-w-sm rounded overflow-hidden shadow-lg">
+                                <img class="img w-full"
+                                    src="https://cdn.dribbble.com/users/3512533/screenshots/14168376/media/1357b33cb4057ecb3c6f869fc977561d.jpg?resize=400x300&vertical=center"
+                                    alt="No results">
+                                <div class="px-6 py-4">
+                                    <div class="font-bold text-xl mb-2">No Result</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="max-w-sm rounded overflow-hidden shadow-lg">
+                                <img class="img w-full"
+                                    src="https://cdn.dribbble.com/users/3512533/screenshots/14168376/media/1357b33cb4057ecb3c6f869fc977561d.jpg?resize=400x300&vertical=center"
+                                    alt="No results">
+                                <div class="px-6 py-4">
+                                    <div class="font-bold text-xl mb-2">No Result</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="max-w-sm rounded overflow-hidden shadow-lg">
+                                <img class="img w-full"
+                                    src="https://cdn.dribbble.com/users/3512533/screenshots/14168376/media/1357b33cb4057ecb3c6f869fc977561d.jpg?resize=400x300&vertical=center"
+                                    alt="No results">
+                                <div class="px-6 py-4">
+                                    <div class="font-bold text-xl mb-2">No Result</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="flex items-center justify-center">
-        <nav aria-label="Page navigation example justify-center">
-            <ul class="inline-flex -space-x-px text-sm">
-                <li v-for="link in products.links">
-                    <Link :href="link.url" v-if="link.url"
-                        class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-gray-200 border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                    {{ link.label }}</Link>
-                </li>
-            </ul>
-        </nav>
-    </div>
+        <div class="flex items-center justify-center mt-2">
+            <nav aria-label="Page navigation example justify-center">
+                <ul class="inline-flex -space-x-px text-sm">
+                    <li v-for="link in products.links">
+                        <Link :href="link.url" v-if="link.url"
+                            class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-gray-200 border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                        {{ link.label }}</Link>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Add to cart</h1>
+                        <button @click="closeCartModal()" type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <Form @submit="addtoCart(getProductId)" :validation-schema="addCartSchema" v-slot="{ errors }">
+                            <div class="mb-3">
+                                <label for="exampleInputEmail1" class="form-label">How many would you like to
+                                    order?</label>
+                                <Field name="productQuantity" v-model="addtoCartForm.product_quantity"
+                                    :max="maxQuantity" min="0" type="number" class="form-control"
+                                    :class="{ 'is-invalid': errors.productQuantity }" />
+                                <span class="invalid-feedback">{{ errors.productQuantity }}</span>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" @click="closeCartModal()" class="btn btn-secondary"
+                                    data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Add to cart</button>
+                            </div>
+                        </Form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </WelcomeLayout>
 </template>
 <style>
 .img {

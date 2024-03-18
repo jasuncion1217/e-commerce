@@ -16,7 +16,7 @@ const options = {
     maxToasts: 20,
     newestOnTop: true
 };
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'e-comm';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

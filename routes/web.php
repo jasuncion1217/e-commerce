@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
@@ -18,20 +20,12 @@ use Inertia\Inertia;
 |
 */
 
-// Route::get('/', function () {
-//     return Inertia::render('Welcome', [
-        
-//     ]);
-// });
+//Dashboard
+Route::middleware('auth')->group(function () {
+    Route::get('/Dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+});
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-// Route::get('/Products', function () {
-//     return Inertia::render('Products/Products');
-// })->middleware(['auth', 'verified'])->name('products');
-
+//Profile
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -48,11 +42,13 @@ Route::middleware('auth')->group(function () {
 });
 
 //cart
-Route::middleware('auth')->group(function () {
-    Route::get('Cart/Cart', [ProductController::class, 'index'])->name('cart.index');
-});
+Route::get('Cart/Cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/Cart/{product_id}', [CartController::class, 'store'])->name('cart.store');
+Route::delete('/Cart/{cart_id}', [CartController::class, 'destroy'])->name('cart.destroy');
+
 
 //welcome page
 Route::get('/', [WelcomeController::class, 'welcomeProducts'])->name('welcome.index');
+
 
 require __DIR__.'/auth.php';
