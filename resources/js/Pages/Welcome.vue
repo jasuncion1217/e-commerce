@@ -73,8 +73,11 @@ const addtoCart = (productId) => {
                     addtoCartForm.reset();
             },
             onError: () => {
-                toast.error('Something went wrong');
-                addtoCartForm.reset();
+                if(props.errors.error){
+                    toast.error(props.errors.error);
+                } else {
+                    toast.error('Something went wrong');
+                }        
             }
         });
 }

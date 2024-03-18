@@ -40,11 +40,11 @@ class CartController extends Controller
                     ->withErrors($validator);
             } else {
                 if (!$product) {
-                    return Redirect::back()->withErrors('Product not found');
+                    return Redirect::back()->withErrors(['error' => 'Product not found']);
                 } elseif ($product->product_quantity <= 0) {
-                    return Redirect::back()->withErrors('Out of stock');
+                    return Redirect::back()->withErrors(['error' => 'Out of stock']);
                 } elseif ($product->product_quantity < $request->product_quantity) {
-                    return Redirect::back()->withErrors('You have exceeded the number of stocks');
+                    return Redirect::back()->withErrors(['error' => 'You have exceeded the number of stocks']);
                 }
                 $updated_product_quantity = $product->product_quantity - $request->product_quantity;
 
