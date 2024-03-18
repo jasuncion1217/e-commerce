@@ -3,14 +3,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Form, Field } from 'vee-validate';
-import * as yup from 'yup';
 import { onMounted } from 'vue';
 import { useToast } from "vue-toastification";
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.css';
 
 const toast = useToast();
-const formattedPrice = ref('');
 
 // onMounted(() => {
 //   Swal.fire(props.products);
@@ -20,6 +18,7 @@ const formattedPrice = ref('');
 const props = defineProps({
   products: Object,
   flash: Object,
+  errors: Object,
 });
 
 const formatter = new Intl.NumberFormat('en-US', {
@@ -27,12 +26,13 @@ const formatter = new Intl.NumberFormat('en-US', {
   currency: 'php',
 });
 
-const addProductSchema = yup.object({
-  productImage: yup.string().required('Product image is required'),
-  productName: yup.string().required('Product name is required'),
-  productQuantity: yup.number().required('Product quantity is required'),
-  productPrice: yup.number().required('Product price is required'),
-});
+const MAX_FILE_SIZE = 102400;
+
+const validFileExtensions = { image: ['jpg', 'gif', 'png', 'jpeg', 'svg', 'webp'] };
+
+function isValidFileType(fileName, fileType) {
+  return fileName && validFileExtensions[fileType].indexOf(fileName.split('.').pop()) > -1;
+}
 
 const addProductForm = useForm({
   product_img: null,
@@ -46,14 +46,15 @@ const addProduct = () => {
     {
       preserveScroll: true,
       onSuccess: () => {
-        if (props.flash.successMessage) {
-          toast.success(props.flash.successMessage);
-          addProductForm.reset();
-          selectedImageUrl.value = 'https://hinacreates.com/wp-content/uploads/2021/06/dummy2-450x341.png';
-        } else {
-          toast.error(props.flash.errorMessage);
-        }
-      }
+        toast.success(props.flash.successMessage);
+        addProductForm.reset();
+        selectedImageUrl.value = 'https://hinacreates.com/wp-content/uploads/2021/06/dummy2-450x341.png';
+        $('#addProduct').modal('hide');
+      },
+      onError: () => {
+        toast.error('Something went wrong');
+        selectedImageUrl.value = 'https://hinacreates.com/wp-content/uploads/2021/06/dummy2-450x341.png';
+      },
     });
 }
 
@@ -239,7 +240,7 @@ const closeAddModal = () => {
               aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <Form @submit="addProduct()" :validation-schema="addProductSchema" v-slot="{ errors }">
+            <Form @submit="addProduct()">
               <div class="mb-3">
                 <div class="flex justify-items-center">
                   <img id="selectedImage" :src="selectedImageUrl" alt="example placeholder" class="h-20" />
@@ -247,26 +248,26 @@ const closeAddModal = () => {
                 <label for="exampleInputEmail1" class="form-label">Product Image</label>
                 <Field name="productImage" v-model="addProductForm.product_img" type="file"
                   @input="addProductForm.product_img = $event.target.files[0]" @change="displaySelectedImage"
-                  class="form-control" :class="{ 'is-invalid': errors.productImage }" />
-                <span class="invalid-feedback">{{ errors.productImage }}</span>
+                  class="form-control" :class="{ 'is-invalid': errors.product_img }" />
+                <span class="invalid-feedback">{{ errors.product_img }}</span>
               </div>
               <div class="mb-3">
                 <label for="exampleInputEmail1" class="form-label">Product Name</label>
                 <Field name="productName" v-model="addProductForm.product_name" type="text" class="form-control"
-                  :class="{ 'is-invalid': errors.productName }" />
-                <span class="invalid-feedback">{{ errors.productName }}</span>
+                  :class="{ 'is-invalid': errors.product_name }" />
+                <span class="invalid-feedback">{{ errors.product_name }}</span>
               </div>
               <div class="mb-3">
                 <label for="exampleInputEmail1" class="form-label">Product Price (₱)</label>
                 <Field name="productPrice" id="productPrice" pattern="\d*" v-model="addProductForm.product_price"
-                  type="number" class="form-control" :class="{ 'is-invalid': errors.productPrice }" />
-                <span class="invalid-feedback">{{ errors.productPrice }}</span>
+                  type="number" class="form-control" :class="{ 'is-invalid': errors.product_price }" />
+                <span class="invalid-feedback">{{ errors.product_price }}</span>
               </div>
               <div class="mb-3">
                 <label for="exampleInputEmail1" class="form-label">Product Quantity</label>
                 <Field name="productQuantity" v-model="addProductForm.product_quantity" type="number"
-                  class="form-control" :class="{ 'is-invalid': errors.productQuantity }" />
-                <span class="invalid-feedback">{{ errors.productQuantity }}</span>
+                  class="form-control" :class="{ 'is-invalid': errors.product_quantity }" />
+                <span class="invalid-feedback">{{ errors.product_quantity }}</span>
               </div>
               <div class="modal-footer">
                 <button type="button" @click="closeAddModal()" class="btn btn-secondary"

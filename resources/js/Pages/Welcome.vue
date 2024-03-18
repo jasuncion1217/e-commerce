@@ -2,7 +2,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { Form, Field } from 'vee-validate';
-import * as yup from 'yup';
 import { useToast } from 'vue-toastification';
 import WelcomeLayout from '@/Layouts/WelcomeLayout.vue';
 
@@ -27,6 +26,7 @@ const props = defineProps({
     flash: Object,
     cart: String,
     errorMessage: String,
+    errors: Object,
 });
 
 const getPostImageUrl = (imageName) => {
@@ -36,9 +36,11 @@ const getPostImageUrl = (imageName) => {
 const searchTerm = ref('');
 const getProductId = ref('');
 const maxQuantity = ref('');
+const selectedProductName = ref('');
 
-const showCartModal = (productId, productQuantity) => {
+const showCartModal = (productId, productQuantity, productName) => {
     getProductId.value = productId;
+    selectedProductName.value = productName;
     maxQuantity.value = productQuantity;
 }
 
@@ -55,10 +57,6 @@ const search = () => {
     });
 }
 
-const addCartSchema = yup.object({
-    productQuantity: yup.string().required('Product quantity is required'),
-});
-
 const addtoCartForm = useForm({
     product_quantity: null,
 });
@@ -71,11 +69,11 @@ const addtoCart = (productId) => {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
-                toast.success(props.flash.successMessage);
-                addtoCartForm.reset();
+                    toast.success(props.flash.successMessage);
+                    addtoCartForm.reset();
             },
             onError: () => {
-                toast.error(props.errorMessage);
+                toast.error('Something went wrong');
                 addtoCartForm.reset();
             }
         });
@@ -127,7 +125,7 @@ const formatter = new Intl.NumberFormat('en-US', {
                                         </p>
                                     </div>
                                     <div class="px-6 mb-2">
-                                        <button @click="showCartModal(product.product_id, product.product_quantity)"
+                                        <button @click="showCartModal(product.product_id, product.product_quantity, product.product_name)"
                                             type="button"
                                             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm p-2 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                                             data-bs-toggle="modal" data-bs-target="#cartModal">
@@ -196,14 +194,14 @@ const formatter = new Intl.NumberFormat('en-US', {
                             aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <Form @submit="addtoCart(getProductId)" :validation-schema="addCartSchema" v-slot="{ errors }">
+                        <Form @submit="addtoCart(getProductId)">
                             <div class="mb-3">
-                                <label for="exampleInputEmail1" class="form-label">How many would you like to
+                                <label for="exampleInputEmail1" class="form-label">How many <b>{{ selectedProductName }}</b>'s would you like to
                                     order?</label>
                                 <Field name="productQuantity" v-model="addtoCartForm.product_quantity"
                                     :max="maxQuantity" min="0" type="number" class="form-control"
-                                    :class="{ 'is-invalid': errors.productQuantity }" />
-                                <span class="invalid-feedback">{{ errors.productQuantity }}</span>
+                                    :class="{ 'is-invalid': errors.product_quantity }" />
+                                <span class="invalid-feedback">{{ errors.product_quantity }}</span>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" @click="closeCartModal()" class="btn btn-secondary"

@@ -6,26 +6,19 @@ import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.css';
 import { useToast } from "vue-toastification";
 import { Form, Field } from 'vee-validate';
-import * as yup from 'yup';
 import NavLink from '@/Components/NavLink.vue';
 
-const editing = ref(false);
 const toast = useToast();
 
 const props = defineProps({
     product: Object,
     flash: Object,
-});
-
-const editProductSchema = yup.object({
-    productName: yup.string().required('Product name is required'),
-    productQuantity: yup.number().required('Product quantity is required'),
-    productPrice: yup.number().required('Product price is required'),
+    errors: Object,
 });
 
 const formatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'php',
+    style: 'currency',
+    currency: 'php',
 });
 
 const getPostImageUrl = (imageName) => {
@@ -51,9 +44,7 @@ const displaySelectedImage = (event) => {
 
         reader.onload = function (e) {
             stringImg.value = e.target?.result;
-
         };
-
         reader.readAsDataURL(fileInput.files[0]);
     }
 };
@@ -78,13 +69,13 @@ const updateProduct = (productId) => {
     }).then((result) => {
         if (result.isConfirmed) {
             editForm.put(route('products.update', { product_id: productId }), {
+                preserveState: true,
+                preserveScroll: true,
                 onSuccess: () => {
-                    editing.value = false;
                     toast.success(props.flash.successMessage);
                 },
                 onError: () => {
-                    editing.value = false;
-                    toast.error(props.flash.errorMessage);
+                    toast.error('Something went wrong');
                 }
             });
         }
@@ -104,7 +95,7 @@ const updateProduct = (productId) => {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div v-if="editing === false" class="container-fluid">
+                    <!-- <div v-if="editing === false" class="container-fluid">
                         <div class="grid grid-cols-2">
                             <div class="col-span-2 sm:col-span-1">
                                 <h1> Product details </h1>
@@ -145,40 +136,41 @@ const updateProduct = (productId) => {
 
                             </div>
                         </div>
-                    </div>
-                    <div v-else class="container-fluid">
+                    </div> -->
+                    <div class="container-fluid">
                         <div class="grid grid-cols-2">
                             <div class="col-span-2 sm:col-span-1">
                                 <h1> Product details </h1>
-                                <Form ref="form" @submit="updateProduct(product.product_id)"
-                                    :validation-schema="editProductSchema" v-slot="{ errors }">
-
+                                <Form ref="form" @submit="updateProduct(product.product_id)">
                                     <div class="mb-3">
                                         <label for="category" class="col-form-label">Product Name:</label>
                                         <Field name="productName" type="text" id="disabledTextInput"
-                                            class="form-control" :class="{ 'is-invalid': errors.productName }"
+                                            class="form-control" :class="{ 'is-invalid': errors.product_name }"
                                             v-model="editForm.product_name" />
-                                        <span class="invalid-feedback">{{ errors.productName }}</span>
+                                        <span v-if="props.errors.product_name" class="invalid-feedback">{{
+                                    props.errors.product_name }}</span>
                                     </div>
                                     <div class="mb-3">
                                         <label for="category" class="col-form-label">Product Price:</label>
                                         <Field name="productPrice" step="0.01" type="number" id="disabledTextInput"
-                                            class="form-control" :class="{ 'is-invalid': errors.productPrice }"
+                                            class="form-control" :class="{ 'is-invalid': errors.product_price }"
                                             v-model="editForm.product_price" />
-                                        <span class="invalid-feedback">{{ errors.productPrice }}</span>
+                                        <span v-if="props.errors.product_price" class="invalid-feedback">{{
+                                    props.errors.product_price }}</span>
                                     </div>
                                     <div class="mb-3">
                                         <label for="category" class="col-form-label">Product Quantity:</label>
                                         <Field name="productQuantity" type="number" id="disabledTextInput"
-                                            class="form-control" :class="{ 'is-invalid': errors.productQuantity }"
+                                            class="form-control" :class="{ 'is-invalid': errors.product_quantity }"
                                             v-model="editForm.product_quantity" />
-                                        <span class="invalid-feedback">{{ errors.productQuantity }}</span>
+                                        <span v-if="props.errors.product_quantity" class="invalid-feedback">{{
+                                            props.errors.product_quantity }}</span>
                                     </div>
                                     <div class="footer mr-auto mb-2">
                                         <button type="submit" class="btn btn-primary">Update Product</button>
-                                        <button type="button" @click.prevent="cancelEdit()" class="btn btn-danger ml-2">
-                                            Cancel
-                                        </button>
+                                        <NavLink :href="route('products.index')" class="btn btn-danger ml-2">
+                                            Back
+                                        </NavLink>
                                     </div>
                                 </Form>
                             </div>
