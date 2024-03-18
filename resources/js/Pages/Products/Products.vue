@@ -152,57 +152,46 @@ const closeAddModal = () => {
         </div>
 
         <div class="bg-white p-2 overflow-hidden shadow-sm sm:rounded-lg">
-          <table
-            class="w-full rounded-lg table-bordered text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead class="text-gray-700 bg-gray-400 uppercase dark:text-gray-400">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-gray-900">
-                  Product Image
-                </th>
-                <th scope="col" class="px-6 py-3 text-gray-900">
-                  Product Name
-                </th>
-                <th scope="col" class="px-6 py-3 text-gray-900">
-                  Quantity
-                </th>
-                <th scope="col" class="px-6 py-3 text-gray-900">
-                  Price
-                </th>
-                <th scope="col" class="px-6 py-3 text-gray-900">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="product in props.products.data" :key="product.product_id"
-                class="border-b border-gray-200 dark:border-gray-700">
-                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                  <img :src="getPostImageUrl(product.product_img)" class="img" alt="Product Image">
-                </th>
-                <td class="px-6 py-4 text-gray-900">
-                  {{ product.product_name }}
-                </td>
-                <td class="px-6 py-4 text-gray-900">
-                  {{ product.product_quantity }}
-                </td>
-                <td class="px-6 py-4 text-gray-900">
-                  {{ formatter.format(product.product_price) }}
-                </td>
-                <td class="px-6 py-4 text-gray-900">
-                  <div class="flex flex-column">
-                    <Link type="button" :href="route('products.show', { product_id: product.product_id })"
-                      class="text-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-2.5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                    View
-                    </Link>
-                    <button type="button" @click="deleteProduct(product.product_id, product.product_name)"
-                      class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-2.5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-                      Delete
-                    </button>
+          <div v-if="props.products.data.length > 0">
+            <div v-for="product in products.data" :key="product.product_id"
+              class="justify-between mb-6 rounded-lg bg-white p-6 shadow-md sm:flex sm:justify-start">
+              <img :src="getPostImageUrl(product.product_img)" alt="product-image" class="w-full rounded-lg sm:w-40" />
+              <div class="sm:ml-4 sm:flex sm:w-full sm:justify-between">
+                <div class="mt-5 sm:mt-0">
+                  <h2 class="text-lg font-bold text-gray-900">{{ product.product_name }}</h2>
+                </div>
+                <div class="mt-4 flex-col justify-center sm:space-y-6 sm:mt-0 sm:block sm:space-x-6">
+                  <div class="flex-col justify-end">
+                    <p class="text-sm"><span class="font-bold">Product Quantity: </span>{{ product.product_quantity }}
+                    </p>
+                    <p class="text-sm"><span class="font-bold">Product Price: </span>{{
+                  formatter.format(product.product_price) }}</p>
+                    <div class="grid grid-cols-2 gap-2">
+                      <Link :href="route('products.show', { product_id: product.product_id })"
+                        class="text-white text-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                      Edit</Link>
+                      <button type="button" @click="deleteProduct(product.product_id, product.product_name)"
+                        class="focus:outline-none text-center text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-2 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Delete
+                        item</button>
+                    </div>
                   </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else>
+            <div class="justify-between mb-6 rounded-lg bg-white p-6 shadow-md sm:flex sm:justify-start">
+              <img src="data:image/png;base64,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" alt="product-image"
+                class="w-full rounded-lg sm:w-40" />
+              <div class="sm:ml-4 sm:flex sm:w-full sm:justify-between">
+                <div class="mt-5 sm:mt-0">
+                  <h2 class="text-lg font-bold text-gray-900">No products found</h2>
+                </div>
+                <div class="mt-4 flex-col justify-center sm:space-y-6 sm:mt-0 sm:block sm:space-x-6">
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div class="p-f flex justify-end">
             <nav aria-label="Page navigation example">

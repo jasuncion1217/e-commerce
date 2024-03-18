@@ -25,14 +25,6 @@ const getPostImageUrl = (imageName) => {
     return imageName ? `/storage/${imageName}` : 'https://hinacreates.com/wp-content/uploads/2021/06/dummy2-450x341.png';
 };
 
-const editBook = () => {
-    editing.value = true;
-};
-
-const cancelEdit = () => {
-    editing.value = false;
-}
-
 const selectedImageUrl = ref('/storage/' + props.product.product_img);
 const stringImg = JSON.stringify(selectedImageUrl);
 
@@ -56,8 +48,6 @@ const editForm = useForm({
 });
 
 const updateProduct = (productId) => {
-    editing.value = true;
-
     Swal.fire({
         title: 'Are you sure?',
         text: 'You are about to update this book',

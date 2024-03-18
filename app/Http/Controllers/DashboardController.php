@@ -2,25 +2,37 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Cart;
 use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $currentYear = Carbon::now()->year;
         try {
-            $carts = Cart::whereYear('created_at', '=', '2024')->get();
+            $carts = Cart::when($request->selectedYear, function ($query, $selectedYear) {
+                return $query->whereYear('created_at', 'like', '%' . $selectedYear . '%');
+            }, function ($query) use ($currentYear) {
+                return $query->whereYear('created_at', $currentYear);
+            })->get();
+
             $products = Product::all();
             $users = User::all();
 
             $cartCount = $carts->count();
             $productsCount = $products->count();
             $usersCount = $users->count();
+
+            $years = Cart::select(DB::raw('YEAR(created_at) as year'))
+                ->distinct()
+                ->pluck('year');
 
             $monthlySales = [];
 
@@ -50,8 +62,9 @@ class DashboardController extends Controller
                 'revenue' => $revenue ?? '0',
                 'lineGraphData' => $lineGraphData,
                 'totalRevenue' => array_sum($data),
+                'years' => $years,
             ]);
-        }  catch (\Exception $e) {
+        } catch (\Exception $e) {
             return Redirect::back()->with('errorMessage', 'Error getting data: ' . $e->getMessage())->withInput();
         }
 

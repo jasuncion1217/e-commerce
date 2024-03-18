@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { onMounted } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
 import Chart from 'chart.js/auto';
 
 const props = defineProps({
@@ -10,6 +10,7 @@ const props = defineProps({
     revenue: String,
     users: Number,
     lineGraphData: Object,
+    years: Object,
 });
 
 const formatter = new Intl.NumberFormat('en-US', {
@@ -41,6 +42,17 @@ const renderLineGraph = () => {
         });
     }
 };
+
+const selectedYear = ref('');
+
+const updateGraph = () => {
+    router.get('/Dashboard', {
+        selectedYear: selectedYear.value,
+    }, {
+        preserveScroll: false,
+        preserveState: false,
+    });
+}
 
 onMounted(() => {
     renderLineGraph();
@@ -98,6 +110,13 @@ onMounted(() => {
                                 <h3 class="text-sm tracking-wider">Total Revenue</h3>
                                 <p class="text-3xl">{{ formatter.format(props.revenue) }}</p>
                             </div>
+                        </div>
+                        <div class="cols-span-1">
+                            <Label class="font-bold">Select a year:</Label>
+                            <select @change="updateGraph()" v-model="selectedYear"
+                                class="form-select" aria-label="Floating label disabled select example">
+                                <option v-for="year in years" :value="year">{{ year }}</option>
+                            </select>
                         </div>
                         <div class="flex col-span-3 items-center bg-white border rounded-sm overflow-hidden shadow">
                             <canvas id="myLineGraph"></canvas>
