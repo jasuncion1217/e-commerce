@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UserProducts;
 use Inertia\Inertia;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -18,11 +20,28 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         try {
-            $products = Product::select('product_id', 'product_name', 'product_img', 'product_price', 'product_img', 'product_quantity')
+            $user = auth()->user();
+            $user_id = $user->id;
+
+            if ($user->hasRole('admin')) {
+                $products = UserProducts::select('products.product_id', 'products.product_name', 'products.product_img', 'products.product_price', 'products.product_img', 'products.product_quantity', 'users.name', 'users.id')
+                ->join('products', 'user_products.product_id', '=', 'products.product_id')
+                ->join('users', 'user_products.user_id', '=', 'users.id')
                 ->orderByDesc('product_id')
                 ->when($request->searchTerm, function ($query, $searchTerm) {
                     return $query->where('product_name', 'like', '%' . $searchTerm . '%');
                 })->paginate(5);
+            } elseif ($user->hasRole('editor')) {
+                $products = UserProducts::select('products.product_id', 'products.product_name', 'products.product_img', 'products.product_price', 'products.product_img', 'products.product_quantity', 'users.name', 'users.id')
+                ->join('products', 'user_products.product_id', '=', 'products.product_id')
+                ->join('users', 'user_products.user_id', '=', 'users.id')
+                ->orderByDesc('product_id')
+                ->when($request->searchTerm, function ($query, $searchTerm) {
+                    return $query->where('product_name', 'like', '%' . $searchTerm . '%');
+                })->where('users.id', $user_id)
+                ->paginate(5);
+            }
+            
 
             return Inertia::render('Products/Products', [
                 'products' => $products,
@@ -35,6 +54,10 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try {
+            $user = auth()->user();
+
+            $user_id = $user->id;
+
             $validator = Validator::make($request->all(), [
                 'product_name' => 'required|string|max:255',
                 'product_price' => 'required|numeric|min:1',
@@ -53,6 +76,11 @@ class ProductController extends Controller
                 $product->product_quantity = $request->product_quantity;
                 $product->product_img = $link;
                 $product->save();
+
+                $user_product = new UserProducts;
+                $user_product->user_id = $user_id;
+                $user_product->product_id = $product->product_id;
+                $user_product->save();
 
                 return Redirect::route('products.index')
                     ->with('successMessage', 'Product Added Successfully');

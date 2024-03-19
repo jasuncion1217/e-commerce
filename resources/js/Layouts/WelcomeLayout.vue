@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Link} from '@inertiajs/vue3';
 
 </script>
 <template>

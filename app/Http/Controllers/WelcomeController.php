@@ -12,7 +12,9 @@ class WelcomeController extends Controller
 {
     public function welcomeProducts(Request $request)
     {
-        $products = Product::select('product_id', 'product_name', 'product_img', 'product_price', 'product_img', 'product_quantity')
+        $products = Product::select('products.product_id', 'products.product_name', 'products.product_img', 'products.product_price', 'products.product_img', 'products.product_quantity', 'users.name')
+            ->join('user_products', 'products.product_id', '=', 'user_products.product_id')
+            ->join('users', 'user_products.user_id', '=', 'users.id')
             ->orderByDesc('product_id')
             ->when($request->searchTerm, function ($query, $searchTerm) {
                 return $query->where('product_name', 'like', '%' . $searchTerm . '%');

@@ -125,6 +125,10 @@ const formatter = new Intl.NumberFormat('en-US', {
                                             </span>
                                             {{ formatter.format(product.product_price) }}
                                         </div>
+                                        <div class=" text-xl mb-2"><span class="font-bold">Product by:
+                                            </span>
+                                            {{ product.name }}
+                                        </div>
                                         </p>
                                     </div>
                                     <div class="px-6 mb-2">

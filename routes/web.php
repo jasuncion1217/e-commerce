@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
@@ -39,6 +42,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/products/{product_id}', [ProductController::class, 'destroy'])->name('products.delete');
     Route::get('/products/show/{product_id}', [ProductController::class, 'getProduct'])->name('products.show');
     Route::put('/products/update/{product_id}', [ProductController::class, 'updateProduct'])->name('products.update');
+});
+
+//for admin only
+Route::middleware(['auth', 'role:admin'])->prefix('users')->group(function () {
+    Route::resource('/roles', RoleController::class);
+    Route::resource('/permissions', PermissionController::class);
+    Route::get('/users', [UserController::class,'index'])->name('users.index');
+    Route::post('/user', [UserController::class,'store'])->name('users.store');
+    Route::get('/user/{id}', [UserController::class, 'getUserData'])->name('user.get');
+    Route::put('/user/{id}',[UserController::class, 'update'])->name('user.update');
+    Route::delete('/user/{id}',[UserController::class, 'destroy'])->name('user.destroy');
 });
 
 //cart

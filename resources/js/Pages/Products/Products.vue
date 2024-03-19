@@ -26,14 +26,6 @@ const formatter = new Intl.NumberFormat('en-US', {
   currency: 'php',
 });
 
-const MAX_FILE_SIZE = 102400;
-
-const validFileExtensions = { image: ['jpg', 'gif', 'png', 'jpeg', 'svg', 'webp'] };
-
-function isValidFileType(fileName, fileType) {
-  return fileName && validFileExtensions[fileType].indexOf(fileName.split('.').pop()) > -1;
-}
-
 const addProductForm = useForm({
   product_img: null,
   product_name: null,
@@ -158,7 +150,8 @@ const closeAddModal = () => {
               <img :src="getPostImageUrl(product.product_img)" alt="product-image" class="w-full rounded-lg sm:w-40" />
               <div class="sm:ml-4 sm:flex sm:w-full sm:justify-between">
                 <div class="mt-5 sm:mt-0">
-                  <h2 class="text-lg font-bold text-gray-900">{{ product.product_name }}</h2>
+                  <h1 class="text-lg font-bold text-gray-900">{{ product.product_name }}</h1>
+                  <h3 class="text-lg font-bold text-gray-500"><span class="text-bold">Product by: </span>{{ product.name }}</h3>
                 </div>
                 <div class="mt-4 flex-col justify-center sm:space-y-6 sm:mt-0 sm:block sm:space-x-6">
                   <div class="flex-col justify-end">
