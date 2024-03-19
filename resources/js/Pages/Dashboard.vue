@@ -8,6 +8,7 @@ const props = defineProps({
     cartItems: Number,
     products: Number,
     revenue: String,
+    totalRevenue: Number,
     users: Number,
     lineGraphData: Object,
     years: Object,
@@ -108,7 +109,7 @@ onMounted(() => {
                                 </svg></div>
                             <div class="px-4 text-gray-700">
                                 <h3 class="text-sm tracking-wider">Total Revenue</h3>
-                                <p class="text-3xl">{{ formatter.format(props.revenue) }}</p>
+                                <p class="text-3xl">{{ formatter.format(props.totalRevenue) }}</p>
                             </div>
                         </div>
                         <div class="cols-span-1">

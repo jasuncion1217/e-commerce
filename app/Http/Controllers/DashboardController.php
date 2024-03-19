@@ -38,7 +38,6 @@ class DashboardController extends Controller
 
             foreach ($carts as $cartItem) {
                 $month = $cartItem->created_at->format('F');
-                $revenue = $cartItem->sum('total_price');
                 $totalPrice = $cartItem->total_price;
 
                 if (isset ($monthlySales[$month])) {
@@ -59,7 +58,6 @@ class DashboardController extends Controller
                 'cartItems' => $cartCount,
                 'products' => $productsCount,
                 'users' => $usersCount,
-                'revenue' => $revenue ?? '0',
                 'lineGraphData' => $lineGraphData,
                 'totalRevenue' => array_sum($data),
                 'years' => $years,
