@@ -42,7 +42,7 @@ const addUser = () => {
                 addUserForm.reset();
             },
             onError: () => {
-                toast.error(props.flash.successMessage);
+                toast.error('Something went wrong');
             },
         });
 };

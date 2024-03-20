@@ -46,8 +46,6 @@ Route::middleware('auth')->group(function () {
 
 //for admin only
 Route::middleware(['auth', 'role:admin'])->prefix('users')->group(function () {
-    Route::resource('/roles', RoleController::class);
-    Route::resource('/permissions', PermissionController::class);
     Route::get('/users', [UserController::class,'index'])->name('users.index');
     Route::post('/user', [UserController::class,'store'])->name('users.store');
     Route::get('/user/{id}', [UserController::class, 'getUserData'])->name('user.get');
